@@ -115,32 +115,13 @@ def search_flights():
   nav_path = strip_place(request.url)
   nav_offsets = get_navigation_offsets(start, end, config.RECORDS_PER_PAGE)
   
-<<<<<<< HEAD
-<<<<<<< HEAD
- # Build the base of our elasticsearch query
-=======
   # Build the base of our elasticsearch query
->>>>>>> 8d847a9f5e96fa0ea85586239b7f368855dc1c77
-=======
-  # Build the base of our elasticsearch query
->>>>>>> 8d847a9f5e96fa0ea85586239b7f368855dc1c77
   query = {
     'query': {
       'bool': {
         'must': []}
     },
 <<<<<<< HEAD
-<<<<<<< HEAD
-    'sort': [
-      {'FlightDate': {'order': 'asc'} },
-      '_score'
-    ],
-    'from': start,
-    'size': config.RECORDS_PER_PAGE
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 8d847a9f5e96fa0ea85586239b7f368855dc1c77
       'sort': [
       {'FlightDate': 'asc'},
      ],
@@ -153,10 +134,6 @@ def search_flights():
     'from': start,
     'size': config.RECORDS_PER_PAGE
 >>>>>>> e67f89d00d650b9208180d83b115727e7af238fa
-<<<<<<< HEAD
->>>>>>> 8d847a9f5e96fa0ea85586239b7f368855dc1c77
-=======
->>>>>>> 8d847a9f5e96fa0ea85586239b7f368855dc1c77
   }
   
   # Add any search parameters present

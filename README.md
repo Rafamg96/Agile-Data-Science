@@ -44,7 +44,10 @@ Originally by Pete Warden, the data value pyramid is how the book is organized a
 
 ![Data Value Pyramid](images/climbing_the_pyramid_chapter_intro.png)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 8d847a9f5e96fa0ea85586239b7f368855dc1c77
 
 # System Architecture
 
@@ -88,4 +91,7 @@ We create an entire realtime predictive system with a web front-end to submit pr
 
 ![Predicting Flight Delays UI](images/predicting_flight_kafka_waiting.png)
 # Agile-Data-Science
+<<<<<<< HEAD
+>>>>>>> 8d847a9f5e96fa0ea85586239b7f368855dc1c77
+=======
 >>>>>>> 8d847a9f5e96fa0ea85586239b7f368855dc1c77
