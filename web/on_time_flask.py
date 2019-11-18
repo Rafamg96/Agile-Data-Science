@@ -1,10 +1,60 @@
 from flask import Flask, render_template, request
 from pymongo import MongoClient
 from bson import json_util
+import config
+import json
+from pyelasticsearch import ElasticSearch
+import sys, os, re
+
 
 # Set up Flask and Mongo
 app = Flask(__name__)
 client = MongoClient()
+RECORDS_PER_PAGE=15
+ELASTIC_URL='http://localhost:9200/agile_data_science'
+
+elastic = ElasticSearch(config.ELASTIC_URL)
+
+def get_navigation_offsets(offset1, offset2, increment):
+  offsets = {}
+  offsets['Next'] = {'top_offset': offset2 + increment, 'bottom_offset': 
+  offset1 + increment}
+  offsets['Previous'] = {'top_offset': max(offset2 - increment, 0), 
+ 'bottom_offset': max(offset1 - increment, 0)} # Don't go < 0
+  return offsets
+
+# Strip the existing start and end parameters from the query string
+def strip_place(url):
+  try:
+    p = re.match('(.+)[?]start=.+&end=.+', url).group(1)
+  except AttributeError as e:
+    return url
+  return p
+
+def process_search(results):
+  records = []
+  total = 0
+  if results['hits'] and results['hits']['hits']:
+    total = results['hits']['total']
+    hits = results['hits']['hits']
+    for hit in hits:
+      record = hit['_source']
+      records.append(record)
+  return records, total
+
+
+@app.route("/airplane/flights/<tail_number>")
+def flights_per_airplane_v2(tail_number):
+  flights = client.agile_data_science.flights_per_airplane.find_one({'TailNum': tail_number})
+  descriptions = client.agile_data_science.flights_per_airplane_v2.find_one({'TailNum': tail_number})
+  print(descriptions['Description'])
+  if descriptions is None:
+    descriptions = []
+  images = client.agile_data_science.airplane_images.find_one({'TailNum': tail_number})
+  if images is None:
+    images = []
+  return render_template('flights_per_airplane.html', flights=flights, images=images, descriptions=descriptions['Description'], tail_number=tail_number)
+
 
 # Controller: Fetch an email and display it
 @app.route("/on_time_performance")
@@ -21,6 +71,142 @@ def on_time_performance():
   })
   
   return render_template('flight.html', flight=flight)
+
+# Controller: Fetch all flights between cities on a given day and display them
+@app.route("/flights/<origin>/<dest>/<flight_date>")
+def list_flights(origin, dest, flight_date):
+
+  start = request.args.get('start') or 0
+  start = int(start)
+  end = request.args.get('end') or config.RECORDS_PER_PAGE
+  end = int(end)
+  width = end - start
+
+  nav_offsets = get_navigation_offsets(start, end, config.RECORDS_PER_PAGE)
+
+  flights = client.agile_data_science.on_time_performance.find(
+    {
+      'Origin': origin,
+      'Dest': dest,
+      'FlightDate': flight_date
+    },
+    sort = [
+      ('DepTime', 1),
+      ('ArrTime', 1)
+    ]
+  )
+  flight_count = flights.count()
+  flights = flights.skip(start).limit(width)
+
+  return render_template(
+    'flights.html', 
+    flights=flights, 
+    flight_date=flight_date, 
+    flight_count=flight_count,
+    nav_path=request.path,
+    nav_offsets=nav_offsets
+  )
+
+@app.route("/total_flights")
+def total_flights():
+  total_flights = client.agile_data_science.flights_by_month.find({}, 
+    sort = [
+      ('Year', 1),
+      ('Month', 1)
+    ])
+  return render_template('total_flights.html', total_flights=total_flights)
+
+# Serve the chart's data via an asynchronous request (formerly known as 'AJAX')
+@app.route("/total_flights.json")
+def total_flights_json():
+  total_flights = client.agile_data_science.flights_by_month.find({}, 
+    sort = [
+      ('Year', 1),
+      ('Month', 1)
+    ])
+  return json_util.dumps(total_flights, ensure_ascii=False)
+
+# Controller: Fetch a flight chart 2.0
+@app.route("/total_flights_chart")
+def total_flights_chart_2():
+  total_flights = client.agile_data_science.flights_by_month.find({}, 
+    sort = [
+      ('Year', 1),
+      ('Month', 1)
+    ])
+  return render_template('total_flights_chart.html', total_flights=total_flights)
+
+@app.route("/flights/search")
+@app.route("/flights/search/")
+def search_flights():
+
+  # Search parameters
+  carrier = request.args.get('Carrier')
+  flight_date = request.args.get('FlightDate')
+  origin = request.args.get('Origin')
+  dest = request.args.get('Dest')
+  tail_number = request.args.get('TailNum')
+  flight_number = request.args.get('FlightNum')
+
+  # Pagination parameters
+  start = request.args.get('start') or 0
+  start = int(start)
+  end = request.args.get('end') or config.RECORDS_PER_PAGE
+  end = int(end)
+
+  print(request.args)
+  # Navigation path and offset setup
+  nav_path = strip_place(request.url)
+  #nav_path=request.path
+  nav_offsets = get_navigation_offsets(start, end, config.RECORDS_PER_PAGE)
+
+  # Build the base of our elasticsearch query
+  query = {
+    'query': {
+      'bool': {
+        'must': []}
+    },
+    'sort': [
+      {'FlightDate': {'order': 'asc'} },
+      '_score'
+    ],
+    'from': start,
+    'size': config.RECORDS_PER_PAGE
+  }
+
+  # Add any search parameters present
+  if carrier:
+    query['query']['bool']['must'].append({'match': {'Carrier': carrier}})
+  if flight_date:
+    query['query']['bool']['must'].append({'match': {'FlightDate': flight_date}})
+  if origin: 
+    query['query']['bool']['must'].append({'match': {'Origin': origin}})
+  if dest: 
+    query['query']['bool']['must'].append({'match': {'Dest': dest}})
+  if tail_number: 
+    query['query']['bool']['must'].append({'match': {'TailNum': tail_number}})
+  if flight_number: 
+    query['query']['bool']['must'].append({'match': {'FlightNum': flight_number}})
+
+  # Query elasticsearch, process to get records and count
+  results = elastic.search(query)
+  flights, flight_count = process_search(results)
+
+  # Persist search parameters in the form template
+  return render_template(
+    'search.html', 
+    flights=flights, 
+    flight_date=flight_date, 
+    flight_count=flight_count,
+    nav_path=nav_path,
+    nav_offsets=nav_offsets,
+    carrier=carrier,
+    origin=origin,
+    dest=dest,
+    tail_number=tail_number,
+    flight_number=flight_number
+    )
+
 
 if __name__ == "__main__":
   app.run(
