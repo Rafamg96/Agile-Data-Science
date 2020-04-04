@@ -1,0 +1,1 @@
+{"class":"org.apache.spark.ml.feature.VectorAssembler","timestamp":1577633688202,"sparkVersion":"2.1.0","uid":"VectorAssembler_400f938b96ebe423e9ed","paramMap":{"outputCol":"Features_vec","inputCols":["DepDelay","Distance","Carrier_index","DayOfMonth_index","DayOfWeek_index","DayOfYear_index","Origin_index","Origin_index","Dest_index","Route_index"]}}

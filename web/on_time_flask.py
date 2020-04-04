@@ -5,7 +5,8 @@ import config
 import json
 from pyelasticsearch import ElasticSearch
 import sys, os, re
-
+import search_helpers
+import predict_utils
 
 # Set up Flask and Mongo
 app = Flask(__name__)
@@ -14,6 +15,14 @@ RECORDS_PER_PAGE=15
 ELASTIC_URL='http://localhost:9200/agile_data_science'
 
 elastic = ElasticSearch(config.ELASTIC_URL)
+
+from kafka import KafkaProducer, TopicPartition
+producer = KafkaProducer(bootstrap_servers=['localhost:9092'],api_version=(0,10))
+PREDICTION_TOPIC = 'flight_delay_classification_request'
+
+import uuid
+
+
 
 def get_navigation_offsets(offset1, offset2, increment):
   offsets = {}
@@ -43,6 +52,97 @@ def process_search(results):
   return records, total
 
 
+
+@app.route("/flights/delays/predict/classify_realtime/response/<unique_id>")
+def classify_flight_delays_realtime_response(unique_id):
+  """Serves predictions to polling requestors"""
+
+  prediction = \
+    client.agile_data_science.flight_delay_classification_response.find_one(
+      {
+        "UUID": unique_id
+      }
+    )
+
+  response = {"status": "WAIT", "id": unique_id}
+  if prediction:
+    response["status"] = "OK"
+    response["prediction"] = prediction
+
+  return json_util.dumps(response)
+
+
+
+@app.route("/flights/delays/predict_kafka")
+def flight_delays_page_kafka():
+  """Serves flight delay prediction page with polling form"""
+
+  form_config = [
+    {'field': 'DepDelay', 'label': 'Departure Delay'},
+    {'field': 'Carrier'},
+    {'field': 'FlightDate', 'label': 'Date'},
+    {'field': 'Origin'},
+    {'field': 'Dest', 'label': 'Destination'},
+  ]
+
+  return render_template(
+   'flight_delays_predict_kafka.html', form_config=form_config
+  )
+
+@app.route("/flights/delays/predict/classify_realtime", methods=['POST'])
+def classify_flight_delays_realtime():
+
+  # Define the form fields to process
+  """POST API for classifying flight delays"""
+  api_field_type_map = \
+    {
+      "DepDelay": float,
+      "Carrier": str,
+      "FlightDate": str,
+      "Dest": str,
+      "FlightNum": str,
+      "Origin": str
+    }
+
+  # Fetch the values for each field from the form object
+  api_form_values = {}
+  for api_field_name, api_field_type in api_field_type_map.items():
+    api_form_values[api_field_name] = request.form.get(
+      api_field_name, type=api_field_type
+    )
+
+  # Set the direct values, which excludes Date
+  prediction_features = {}
+  for key, value in api_form_values.items():
+    prediction_features[key] = value
+
+  # Set the derived values
+  prediction_features['Distance'] = predict_utils.get_flight_distance(
+    client, api_form_values['Origin'],
+    api_form_values['Dest']
+  )
+
+  # Turn the date into DayOfYear, DayOfMonth, DayOfWeek
+  date_features_dict = predict_utils.get_regression_date_args(
+    api_form_values['FlightDate']
+  )
+  for api_field_name, api_field_value in date_features_dict.items():
+    prediction_features[api_field_name] = api_field_value
+
+  # Add a timestamp
+  prediction_features['Timestamp'] = predict_utils.get_current_timestamp()
+
+  # Create a unique ID for this message
+  unique_id = str(uuid.uuid4())
+  prediction_features['UUID'] = unique_id
+
+  message_bytes = json.dumps(prediction_features).encode()
+  producer.send(PREDICTION_TOPIC, message_bytes)
+
+  response = {"status": "OK", "id": unique_id}
+  return json_util.dumps(response)
+
+
 @app.route("/airplane/flights/<tail_number>")
 def flights_per_airplane_v2(tail_number):
   flights = client.agile_data_science.flights_per_airplane.find_one({'TailNum': tail_number})
@@ -55,6 +155,102 @@ def flights_per_airplane_v2(tail_number):
     images = []
   return render_template('flights_per_airplane.html', flights=flights, images=images, descriptions=descriptions['Description'], tail_number=tail_number)
 
+
+# Controller: Fetch an airplane entity page
+@app.route("/")
+@app.route("/airlines")
+@app.route("/airlines/")
+def airlines():
+  airlines = client.agile_data_science.airplanes_per_carrier.find()
+  return render_template('all_airlines.html', airlines=airlines)
+
+
+
+
+# Controller: Fetch an airplane entity page
+@app.route("/airlines/<carrier_code>")
+def airline2(carrier_code):
+  airline_summary = client.agile_data_science.airlines.find_one(
+    {'CarrierCode': carrier_code}
+  )
+  airline_airplanes = client.agile_data_science.airplanes_per_carrier.find_one(
+    {'Carrier': carrier_code}
+  )
+  return render_template(
+    'airlines.html',
+    airline_summary=airline_summary,
+    airline_airplanes=airline_airplanes,
+    carrier_code=carrier_code
+  )
+
+#Airplanes
+@app.route("/airplanes")
+@app.route("/airplanes/")
+def search_airplanes():
+
+  search_config = [
+    {'field': 'TailNum', 'label': 'Tail Number'},
+    {'field': 'Owner', 'sort_order': 0},
+    {'field': 'OwnerState', 'label': 'Owner State'},
+    {'field': 'Manufacturer', 'sort_order': 1},
+    {'field': 'Model', 'sort_order': 2},
+    {'field': 'ManufacturerYear', 'label': 'MFR Year'},
+    {'field': 'SerialNumber', 'label': 'Serial Number'},
+    {'field': 'EngineManufacturer', 'label': 'Engine MFR', 'sort_order': 3},
+    {'field': 'EngineModel', 'label': 'Engine Model', 'sort_order': 4}
+  ]
+
+
+
+  # Pagination parameters
+  start = request.args.get('start') or 0
+  start = int(start)
+  end = request.args.get('end') or config.AIRPLANE_RECORDS_PER_PAGE
+  end = int(end)
+
+  # Navigation path and offset setup
+  #Como no me coge bien el final de la url lo he metido como remplazo
+  if(request.url=="http://localhost:5000/airplanes/"):
+    request.url="http://localhost:5000/airplanes/?"
+  nav_path = search_helpers.strip_place3(request.url)
+  nav_offsets = search_helpers.get_navigation_offsets(
+    start, 
+    end, 
+    config.AIRPLANE_RECORDS_PER_PAGE
+  )
+
+  # Build the base of our elasticsearch query
+  query = {
+    'query': {
+      'bool': {
+        'must': []}
+    },
+    'from': start,
+    'size': config.AIRPLANE_RECORDS_PER_PAGE
+  }
+
+  arg_dict = {}
+  for item in search_config:
+    field = item['field']
+    value = request.args.get(field)
+    arg_dict[field] = value
+    if value:
+      query['query']['bool']['must'].append({'match': {field: value}})
+
+  # Query elasticsearch, process to get records and count
+  results = elastic.search(query, index='agile_data_science_airplanes')
+  airplanes, airplane_count = search_helpers.process_search(results)
+
+  # Persist search parameters in the form template
+  return render_template(
+    'all_airplanes.html',
+    search_config=search_config,
+    args=arg_dict,
+    airplanes=airplanes,
+    airplane_count=airplane_count,
+    nav_path=nav_path,
+    nav_offsets=nav_offsets,
+  )
 
 # Controller: Fetch an email and display it
 @app.route("/on_time_performance")
@@ -128,13 +324,19 @@ def total_flights_json():
 
 # Controller: Fetch a flight chart 2.0
 @app.route("/total_flights_chart")
-def total_flights_chart_2():
+def total_flights_chart():
   total_flights = client.agile_data_science.flights_by_month.find({}, 
     sort = [
       ('Year', 1),
       ('Month', 1)
     ])
   return render_template('total_flights_chart.html', total_flights=total_flights)
+
+@app.route("/airplanes/chart/manufacturers.json")
+@app.route("/airplanes/chart/manufacturers.json")
+def airplane_manufacturers_chart():
+  mfr_chart = client.agile_data_science.airplane_manufacturer_totals.find_one()
+  return json.dumps(mfr_chart)
 
 @app.route("/flights/search")
 @app.route("/flights/search/")

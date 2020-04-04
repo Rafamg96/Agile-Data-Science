@@ -1,0 +1,16 @@
+conda activate py35
+sudo /usr/share/elasticsearch/bin/elasticsearch start
+
+python on_time_flask.py
+
+kafka/bin/zookeeper-rver-start.sh kafka/config/zookeeper.properties
+
+kafka/bin/kafka-server-start.sh kafka/config/server.properties
+
+
+spark-submit --packages org.apache.spark:spark-streaming-kafka_2.11:1.6.3 /home/rafael/TFM/web/make_predictions_streaming.py 
+
+
+kafka/bin/kafka-console-consumer.sh     --bootstrap-server localhost:9092     --topic flight_delay_classification_request     --from-beginning
+
+

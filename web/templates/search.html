@@ -32,7 +32,7 @@
       <tbody>
         {% for flight in flights %}
         <tr>
-          <td>{{flight.Carrier}}</td>
+          <td><a href="/airlines/{{flight.Carrier}}">{{flight.Carrier}}</a></td>
           <td><a href="/on_time_performance?Carrier={{flight.Carrier}}&FlightDate={{flight.FlightDate}}&FlightNum={{flight.FlightNum}}">{{flight.FlightNum}}</a></td>
           <td>{{flight.Origin}}</td>
           <td>{{flight.Dest}}</td>

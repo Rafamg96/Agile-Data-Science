@@ -1,0 +1,1 @@
+{"class":"org.apache.spark.ml.feature.StringIndexerModel","timestamp":1577633687854,"sparkVersion":"2.1.0","uid":"StringIndexer_4ca6958042477a3c1151","paramMap":{"inputCol":"Route","handleInvalid":"error","outputCol":"Route_index"}}

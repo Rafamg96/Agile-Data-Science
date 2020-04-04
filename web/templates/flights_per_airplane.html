@@ -52,7 +52,7 @@
       <tbody>
         {% for flight in flights['Flights'] %}
         <tr>
-          <td>{{flight['Carrier']}}</td>
+          <td><a href="/airlines/{{flight['Carrier']}}">{{flight['Carrier']}}</a></td>
           <td>{{flight['FlightDate']}}</td>
           <td><a href="/on_time_performance?Carrier={{flight['Carrier']}}&FlightDate={{flight['FlightDate']}}&FlightNum={{flight['FlightNum']}}">{{flight['FlightNum']}}</a></td>
           <td>{{flight['Origin']}}</td>
