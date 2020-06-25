@@ -1,14 +1,18 @@
 conda activate py35
 sudo /usr/share/elasticsearch/bin/elasticsearch start
+#opcional si no funciona mongodb
+mongod --dbpath /home/rafael/Agile_Data_Code_2-master/mongodb/data/db/ &
+mongod --dbpath /home/rafael/TFM/mongodb/data/db/ &
+sudo killall mongod
 
 python on_time_flask.py
 
-kafka/bin/zookeeper-rver-start.sh kafka/config/zookeeper.properties
+kafka/bin/zookeeper-server-start.sh kafka/config/zookeeper.properties
 
 kafka/bin/kafka-server-start.sh kafka/config/server.properties
 
 
-spark-submit --packages org.apache.spark:spark-streaming-kafka_2.11:1.6.3 /home/rafael/TFM/web/make_predictions_streaming.py 
+spark-submit --packages org.apache.spark:spark-streaming-kafka_2.11:1.6.3 /home/rafael/TFM/app/make_predictions_streaming.py 
 
 
 kafka/bin/kafka-console-consumer.sh     --bootstrap-server localhost:9092     --topic flight_delay_classification_request     --from-beginning
