@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block body %}
+<style>
+
+.chart rect {
+  fill: steelblue;
+}
+
+.chart text {
+  fill: white;
+  font: 10px sans-serif;
+  text-anchor: middle;
+}
+
+</style>
+  
+  <div>
+    <p class="lead">Top 20 Busy Airports</p>
+    <br><br>
+    {{ script|safe }} {{ div|safe }} 
+  </div>
+ 
+{% endblock %}

@@ -1,0 +1,18 @@
+version: '3'
+services:
+  appseed-app:
+    restart: always
+    env_file: .env
+    build: .
+    volumes:
+      - ./templates:/templates
+    ports:
+      - "5000:5000"
+    networks:
+      - db_network
+      - web_network
+networks:
+  db_network:
+    driver: bridge
+  web_network:
+    driver: bridge

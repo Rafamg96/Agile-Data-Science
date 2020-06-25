@@ -1,0 +1,89 @@
+{% extends "layout.html" %}
+{% block body %}
+<br>
+<style>
+.h1 {
+PADDING-LEFT: 20px;
+text-shadow: 2px 2px 1px #000000,-5px -5px 10px #000000;
+-webkit-text-shadow: 2px 2px 1px #000000,-5px -5px 10px #000000;
+-moz-text-shadow: 2px 2px 1px #000000,-5px -5px 10px #000000;
+} 
+.contenedor{
+    position: relative;
+    display: inline-block;
+    text-align: center;
+}
+.centrado{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -350%);
+    font-size: 400% ;
+}
+</style>
+<h1 class="h1">Flights by Tail Number {{tail_number}}</h1>
+<br><br>
+
+  <div style="PADDING-LEFT: 20px">
+    
+    <table class="table table-condensed table-striped">
+      <thead>
+        <th>Images</th>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+          {% for image in images['Images'] %}
+          <img src={{image}} style=width:24%>
+          {% endfor %}
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+        <table class="table table-condensed table-striped">
+      <thead>
+        <th>Serial Number</th>
+        <th>Manufacturer</th>
+        <th>Model</th>
+        <th>MFR Year</th>
+        <th>Owner</th>
+        <th>Owner State</th>
+        <th>Engine Manufacturer</th>
+        <th>Engine Model</th>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{descriptions['SerialNumber']}}</td>
+          <td>{{descriptions['Manufacturer']}}</td>
+          <td>{{descriptions['Model']}}</td>
+          <td>{{descriptions['Mfr_Year']}}</td>
+          <td>{{descriptions['Owner']}}</td>
+          <td>{{descriptions['Owner_State']}}</td>
+          <td>{{descriptions['Engine_Manufacturer']}}</td> 
+          <td>{{descriptions['Engine_Model']}}</td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="table table-condensed table-striped">
+      <thead>
+        <th>Carrier</th>
+        <th>Date</th>
+        <th>Flight Number</th>
+        <th>Origin</th>
+        <th>Destination</th>
+      </thead>
+      <tbody>
+        {% for flight in flights['Flights'] %}
+        <tr>
+          <td><a href="/airlines/{{flight['Carrier']}}">{{flight['Carrier']}}</a></td>
+          <td>{{flight['FlightDate']}}</td>
+          <td><a href="/on_time_performance?Carrier={{flight['Carrier']}}&FlightDate={{flight['FlightDate']}}&FlightNum={{flight['FlightNum']}}">{{flight['FlightNum']}}</a></td>
+          <td>{{flight['Origin']}}</td>
+          <td>{{flight['Dest']}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

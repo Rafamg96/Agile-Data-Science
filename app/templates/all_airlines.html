@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<br>
+<style>
+.h1 {
+PADDING-LEFT: 20px;
+text-shadow: 2px 2px 1px #000000,-5px -5px 10px #000000;
+-webkit-text-shadow: 2px 2px 1px #000000,-5px -5px 10px #000000;
+-moz-text-shadow: 2px 2px 1px #000000,-5px -5px 10px #000000;
+}
+
+UL.col3
+{
+PADDING-RIGHT: 0px;
+PADDING-LEFT: 40px;
+FLOAT: left;
+PADDING-BOTTOM: 0px;
+MARGIN: 15px 0px;
+WIDTH: 100%;
+PADDING-TOP: 0px;
+LIST-STYLE-TYPE: none
+}
+
+UL.col3 LI
+{
+PADDING-RIGHT: 2px;
+DISPLAY: inline;
+PADDING-LEFT: 2px;
+FLOAT: left;
+PADDING-BOTTOM: 2px;
+WIDTH: 20%;
+PADDING-TOP: 2px
+} 
+
+</style>
+
+<h1 class="h1">Airlines</h1>
+<br>
+
+  <ul class="col3">
+    {% for airline in airlines -%}
+    <li class="button">
+      <a href="/airlines/{{airline.Carrier}}">{{airline.Carrier}}</a>
+    </li>
+    {% endfor -%}
+  </ul>
+
+{% endblock %}
+

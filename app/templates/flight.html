@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<br>
+<style>
+.h1 {
+PADDING-LEFT: 20px; 
+text-shadow: 2px 2px 1px #000000,-5px -5px 10px #000000;
+-webkit-text-shadow: 2px 2px 1px #000000,-5px -5px 10px #000000;
+-moz-text-shadow: 2px 2px 1px #000000,-5px -5px 10px #000000;
+} 
+.contenedor{
+    position: relative;
+    display: inline-block;
+    text-align: center;
+}
+.centrado{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -350%);
+    font-size: 400% ;
+}
+</style>
+
+<h1 class="h1">Flight {{flight.FlightNum}}</h1>
+<br><br>
+
+  <div style="PADDING-LEFT: 20px; ">
+    <table class="table">
+      <thead>
+        <th>Airline</th>
+        <th>Origin</th>
+        <th>Destination</th>
+        <th>Tail Number</th>
+        <th>Date</th>
+        <th>Air Time</th>
+        <th>Distance</th>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="/airlines/{{flight.Carrier}}">{{flight.Carrier}}</a></td>
+          <td>{{flight.Origin}}</td>
+          <td>{{flight.Dest}}</td>
+          <td><a href="/airplane/flights/{{flight.TailNum}}">{{flight.TailNum}}</a></td>
+          <td>{{flight.FlightDate}}</td>
+          <td>{{flight.AirTime}}</td>
+          <td>{{flight.Distance}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

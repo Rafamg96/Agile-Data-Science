@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<br>
+<style>
+.h1 {
+text-shadow: 2px 2px 1px #000000,-5px -5px 10px #000000;
+-webkit-text-shadow: 2px 2px 1px #000000,-5px -5px 10px #000000;
+-moz-text-shadow: 2px 2px 1px #000000,-5px -5px 10px #000000;
+} 
+.contenedor{
+    position: relative;
+    display: inline-block;
+    text-align: center;
+}
+.centrado{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -350%);
+    font-size: 400% ;
+}
+</style>
+
+<h1 class="h1">Total Flights by Month</h1>
+
+
+  <div>
+    <table class="table table-condensed table-striped" style="width: 200px;">
+      <thead>
+        <th>Month</th>
+        <th>Total Flights</th>
+      </thead>
+      <tbody>
+        {% for month in total_flights %}
+        <tr>
+          <td>{{month.Month}}</td>
+          <td>{{month.total_flights}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

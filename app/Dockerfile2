@@ -1,0 +1,12 @@
+FROM python:3.6
+
+ENV FLASK_APP run.py
+
+COPY app.py make_predictions_streaming.py predict_utils.py requirements.txt search_helpers.py config.py .env ./
+COPY static static
+COPY templates templates
+RUN pip install -r requirements.txt
+
+EXPOSE 5000
+
+CMD python app.py

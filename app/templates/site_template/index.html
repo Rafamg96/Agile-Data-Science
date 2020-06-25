@@ -1,0 +1,58 @@
+{% extends "base_site.html" %}
+
+{% block title %} Dashboard {% endblock title %}
+
+{% block content %}
+
+
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        Panel de Control
+      </h1>
+    </section>
+	
+	
+	
+	<body>
+
+		<center>
+			<br></br>
+		
+			{{ script|safe }}
+			{{ div|safe }}
+			
+			<br></br>
+			
+			{{script1|safe}}
+			{{div1|safe}}
+			
+			<br></br>
+			
+			{{script2|safe}}
+			{{div2|safe}}
+			
+			<br></br>
+			
+		
+		</center>
+
+	</body>
+
+
+{% endblock content %}
+
+{% block javascripts %}
+<!--
+<script src="https://cdn.bokeh.org/bokeh/release/bokeh-1.4.0.min.js"></script>
+<script src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-1.4.0.min.js"></script>
+<script src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-1.4.0.min.js"></script>
+-->
+<script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-1.4.0.min.js"></script>
+<script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-1.4.0.min.js"></script>
+<script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-1.4.0.min.js"></script>
+<script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-gl-1.4.0.min.js"></script>
+<script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-api-1.4.0.min.js"></script>
+
+
+{% endblock %}

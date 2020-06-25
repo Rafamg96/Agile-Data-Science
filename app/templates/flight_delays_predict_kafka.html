@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% block body %}
+ <br>
+<style>
+.h1 {
+PADDING-LEFT: 20px;
+text-shadow: 2px 2px 1px #000000,-5px -5px 10px #000000;
+-webkit-text-shadow: 2px 2px 1px #000000,-5px -5px 10px #000000;
+-moz-text-shadow: 2px 2px 1px #000000,-5px -5px 10px #000000;
+} 
+.contenedor{	
+    position: relative;
+    display: inline-block;
+    text-align: center;
+}
+.centrado{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -350%);
+    font-size: 400% ;
+}
+</style>
+
+<h1 class="h1">Predicting Flight Delays with Kafka</h1>
+<br><br>
+
+  <!-- Generate form from search_config and request args -->
+  <form id="flight_delay_classification" action="/flights/delays/predict/classify_realtime" method="post" style="PADDING-LEFT: 20px";>
+    {% for item in form_config %}
+      {% if 'label' in item %}
+        <label for="{{item['field']}}">{{item['label']}}</label>
+      {% else %}
+        <label for="{{item['field']}}">{{item['field']}}</label>
+      {% endif %}
+        <input name="{{item['field']}}" style="width: 100px; margin-right: 10px;" value=""></input>
+    {% endfor %}
+    <button type="submit" class="btn btn-xs btn-default" style="height: 25px">Submit</button>
+  </form>
+
+  <div style="margin-top: 10px;PADDING-LEFT: 20px">
+      <p>Delay: <span id="result" style="display: inline-block;"></span></p>
+  </div>
+
+  <!-- Load our form processing javascript -->
+  <script src="/static/flight_delay_predict_polling.js"></script>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block body %}
+<br>
+<style>
+.h1 {
+PADDING-LEFT: 20px;
+text-shadow: 2px 2px 1px #000000,-5px -5px 10px #000000;
+-webkit-text-shadow: 2px 2px 1px #000000,-5px -5px 10px #000000;
+-moz-text-shadow: 2px 2px 1px #000000,-5px -5px 10px #000000;
+} 
+.contenedor{
+    position: relative;
+    display: inline-block;
+    text-align: center;
+}
+.centrado{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -350%);
+    font-size: 400% ;
+}
+</style>
+
+<h1 class="h1">Cuadro de mando</h1>
+
+<iframe width="1400" height="800" src="https://app.powerbi.com/reportEmbed?reportId=b8d98937-9529-49e8-9ea5-6e8a84a7d7fc&autoAuth=true&ctid=35069d74-1489-4194-80c7-3a81385ead5b&config=eyJjbHVzdGVyVXJsIjoiaHR0cHM6Ly93YWJpLW5vcnRoLWV1cm9wZS1yZWRpcmVjdC5hbmFseXNpcy53aW5kb3dzLm5ldC8ifQ%3D%3D" frameborder="0" allowFullScreen="true"></iframe>
+
+{% endblock %}

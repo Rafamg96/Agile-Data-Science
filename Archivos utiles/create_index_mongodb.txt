@@ -1,0 +1,10 @@
+#Levantar mongodb
+mongod
+#Acceder a la consola de mongo
+mongo agile_data_science
+#Indice para TailNum
+db.flights_per_airplane.ensureIndex({"TailNum": 1})
+#Encontrar el primer valor
+db.flights_per_airplane.findOne()
+#borrar collection
+db.collection.drop()
