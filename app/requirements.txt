@@ -7,7 +7,7 @@ urllib3==1.25.6
 pyelasticsearch==1.4.1
 elasticsearch==7.7.1
 beautifulsoup4==4.7.1
-ipython==6.4.0
+ipython==7.16.3
 kafka-python==1.4.7
 requests==2.22.0
 scipy==1.1.0
